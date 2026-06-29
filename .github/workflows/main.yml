@@ -1,0 +1,46 @@
+name: Build NeuroCore Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./flutter_app
+
+    steps:
+      - name: Checkout Repository Code
+        uses: actions/checkout@v4
+
+      - name: Set up Java JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Generate Native Android Files (if missing)
+        run: flutter create --org com.neurocore .
+
+      - name: Install Dependencies
+        run: flutter pub get
+
+      - name: Build Android APK (Release Mode)
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact for Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: neurocore-android-apk
+          path: flutter_app/build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
