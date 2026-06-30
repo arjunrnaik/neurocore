@@ -57,7 +57,7 @@ class NeuroCoreTheme {
       outline: darkOutline,
     ),
     textTheme: _buildTextTheme(Brightness.dark, darkOnSurface),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: darkSurfaceLow,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
@@ -85,7 +85,7 @@ class NeuroCoreTheme {
       outline: lightOutline,
     ),
     textTheme: _buildTextTheme(Brightness.light, lightOnSurface),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: lightSurfaceLow,
       elevation: 0,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),

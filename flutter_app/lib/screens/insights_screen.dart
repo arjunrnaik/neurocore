@@ -24,7 +24,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   Future<void> _loadInsights() async {
-    final entries = await DatabaseService().getAllEntries();
+    final entries = await DatabaseService().getEntries();
     setState(() {
       _totalLogsThisWeek = entries.length;
     });
