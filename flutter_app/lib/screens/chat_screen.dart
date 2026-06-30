@@ -91,7 +91,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
     final entryId = await _db.insertEntry(entry);
 
-    String reply = "✅ Logged under [${intent.domain.toUpperCase()}].";
+    String reply = "";
 
     // Handle reminder scheduling
     if (intent.domain == 'reminder' || intent.action == 'remind') {
@@ -104,7 +104,10 @@ class _ChatScreenState extends State<ChatScreen> {
         dueAt: dueAt,
         createdAt: now,
       ));
-      reply += "\n⏰ Reminder set for $dueAt.";
+      reply = "⏰ Reminder scheduled: \"$msg\" for $dueAt.";
+    } else {
+      final entries = await _db.getEntries();
+      reply = await _gemini.generateChatResponse(text, entries);
     }
 
     setState(() {

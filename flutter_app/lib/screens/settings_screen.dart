@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/db_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -35,6 +37,54 @@ class _SettingsScreenState extends State<SettingsScreen> {
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _saved = false);
     });
+  }
+
+  Future<void> _backupData() async {
+    final jsonStr = await DatabaseService().exportAllDataJson();
+    await Clipboard.setData(ClipboardData(text: jsonStr));
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('✅ Backup Copied to Clipboard!', style: TextStyle(color: Colors.greenAccent)),
+        content: const Text(
+          'All your SQLite entries and reminders have been exported as raw JSON and copied to your clipboard.\n\nYou can now paste it into an email or notes app to keep it safe before uninstalling!',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK', style: TextStyle(color: Colors.cyanAccent))),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmClearData() async {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        title: const Text('⚠️ Permanently Delete Data?', style: TextStyle(color: Colors.redAccent)),
+        content: const Text(
+          'Are you sure you want to erase all stored entries, reminders, and streak counters from your device? This cannot be undone.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white54))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
+            onPressed: () async {
+              await DatabaseService().clearAllData();
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('🗑️ All local SQLite data erased.'), backgroundColor: Colors.red),
+              );
+            },
+            child: const Text('Delete All', style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -78,6 +128,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
+            ),
+            const SizedBox(height: 36),
+            const Text('DATA MANAGEMENT (PRIVACY & BACKUP)', style: TextStyle(color: Colors.cyanAccent, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+            const SizedBox(height: 8),
+            const Text(
+              'Uninstalling the APK deletes local phone storage. Use Backup before uninstalling or changing devices.',
+              style: TextStyle(color: Colors.white54, fontSize: 13),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: Colors.greenAccent),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _backupData,
+                    icon: const Icon(Icons.copy, color: Colors.greenAccent, size: 18),
+                    label: const Text('Backup Data', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      side: const BorderSide(color: Colors.redAccent),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _confirmClearData,
+                    icon: const Icon(Icons.delete_forever, color: Colors.redAccent, size: 18),
+                    label: const Text('Erase All', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 40),
             Center(

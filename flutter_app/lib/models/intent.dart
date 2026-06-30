@@ -101,7 +101,7 @@ class ExtractedIntent {
 
   factory ExtractedIntent.fromJson(Map<String, dynamic> json) {
     return ExtractedIntent(
-      domain: json['domain']?.toString().toLowerCase() ?? 'general',
+      domain: json['domain']?.toString().toLowerCase() ?? 'note',
       action: json['action']?.toString().toLowerCase() ?? 'store',
       entities: json['entities'] is Map<String, dynamic> ? json['entities'] : {},
       sentiment: json['sentiment']?.toString() ?? 'neutral',

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/intent.dart';
@@ -139,5 +140,24 @@ class DatabaseService {
         await db.update('streaks', {'current_streak': streak, 'last_logged_date': today}, where: 'domain = ?', whereArgs: [domain]);
       }
     }
+  }
+
+  // Data Export & Reset
+  Future<String> exportAllDataJson() async {
+    final entries = await getEntries();
+    final reminders = await getReminders(status: 'pending');
+    final map = {
+      'exported_at': DateTime.now().toIso8601String(),
+      'entries': entries.map((e) => e.toMap()).toList(),
+      'reminders': reminders.map((r) => r.toMap()).toList(),
+    };
+    return jsonEncode(map);
+  }
+
+  Future<void> clearAllData() async {
+    final db = await database;
+    await db.delete('entries');
+    await db.delete('reminders');
+    await db.update('streaks', {'current_streak': 0, 'last_logged_date': ''});
   }
 }
