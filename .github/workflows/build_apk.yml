@@ -3,7 +3,7 @@ name: Build NeuroCore Android APK
 on:
   push:
     branches: [ "main", "master" ]
-  workflow_dispatch:
+  workflow_dispatch: # Allows clicking 'Run workflow' manually in GitHub Actions tab
 
 jobs:
   build:
@@ -32,9 +32,25 @@ jobs:
       - name: Generate Native Android Files (if missing)
         run: flutter create --org com.neurocore .
 
-      - name: Inject Internet & Microphone Permissions
+      - name: Ensure Complete Internet Permissions Across All Android Manifests
         run: |
-          sed -i '/<manifest /a \    <uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>\n    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>' android/app/src/main/AndroidManifest.xml
+          python3 -c '
+          import os, glob
+          perms = """
+              <uses-permission android:name="android.permission.INTERNET"/>
+              <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+              <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+              <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+          """
+          for f in glob.glob("android/**/AndroidManifest.xml", recursive=True):
+              with open(f, "r") as file:
+                  content = file.read()
+              if "android.permission.INTERNET" not in content:
+                  content = content.replace("<manifest", "<manifest\n" + perms, 1)
+                  with open(f, "w") as file:
+                      file.write(content)
+                  print(f"Injected permissions into {f}")
+          '
 
       - name: Install Dependencies
         run: flutter pub get
